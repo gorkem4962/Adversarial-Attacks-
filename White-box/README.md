@@ -1,6 +1,23 @@
 # White-Box Adversarial Attacks
 
-MNIST CNN (`WhiteBoxModel`) for white-box experiments (FGSM, L-BFGS, C&W, …).
+MNIST CNN (`WhiteBoxModel`) plus white-box attacks for the AML course.
+
+## Layout
+
+```
+White-box/
+  Code/
+    white_box_model.py   # CNN + train / load / logits API
+    data_utils.py        # MNIST helpers
+    visualize.py         # clean / adv / diff plots
+    attacks/
+      lbfgs.py           # Szegedy L-BFGS-B
+      # fgsm.py, cw.py, ...  (add later)
+    run_lbfgs.py         # CLI for L-BFGS
+  checkpoints/           # trained weights
+  outputs/               # saved figures
+  requirements.txt
+```
 
 ## Setup
 
@@ -10,11 +27,23 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Train / load model
+## Train model (once)
 
 ```bash
-python Code/white_box_model.py          # trains & saves checkpoints/mnist_cnn.pt
-python Code/attack_starter.py           # implement attacks here
+python Code/white_box_model.py
 ```
 
-Inputs are `(N, 1, 28, 28)` tensors in `[0, 1]`. Use `model.logits(x)` for differentiable white-box gradients.
+## Run L-BFGS
+
+```bash
+python Code/run_lbfgs.py
+python Code/run_lbfgs.py --index 10 --target 7 --no-show
+```
+
+Inputs are `(N, 1, 28, 28)` in `[0, 1]`. Use `model.logits(x)` for input gradients.
+
+## Add another attack
+
+1. Create `Code/attacks/<name>.py` with a function returning `(x_adv, meta)`.
+2. Export it from `Code/attacks/__init__.py`.
+3. Add `Code/run_<name>.py` (same pattern as `run_lbfgs.py`).

@@ -5,3 +5,8 @@ __pycache__/
 data/
 *.log
 .mplconfig/
+outputs/*
+!outputs/.gitkeep
+lbfgs_example.png
+carlini.pdf
+goodfellow.pdf
