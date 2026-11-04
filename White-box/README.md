@@ -12,8 +12,10 @@ White-box/
     visualize.py         # clean / adv / diff plots
     attacks/
       lbfgs.py           # Szegedy L-BFGS-B
-      # fgsm.py, cw.py, ...  (add later)
+      fgsm.py            # Goodfellow FGSM (targeted / untargeted)
+      # cw.py, ...       (add later)
     run_lbfgs.py         # CLI for L-BFGS
+    run_fgsm.py          # CLI for FGSM
   checkpoints/           # trained weights
   outputs/               # saved figures
   requirements.txt
@@ -38,6 +40,17 @@ python Code/white_box_model.py
 ```bash
 python Code/run_lbfgs.py
 python Code/run_lbfgs.py --index 10 --target 7 --no-show
+```
+
+## Run FGSM
+
+```bash
+# untargeted (default): leave correct class
+python Code/run_fgsm.py
+python Code/run_fgsm.py --epsilon 0.2 --no-show
+
+# targeted: force a specific class
+python Code/run_fgsm.py --targeted --target 1 --no-show
 ```
 
 Inputs are `(N, 1, 28, 28)` in `[0, 1]`. Use `model.logits(x)` for input gradients.
