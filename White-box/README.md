@@ -60,3 +60,7 @@ Inputs are `(N, 1, 28, 28)` in `[0, 1]`. Use `model.logits(x)` for input gradien
 1. Create `Code/attacks/<name>.py` with a function returning `(x_adv, meta)`.
 2. Export it from `Code/attacks/__init__.py`.
 3. Add `Code/run_<name>.py` (same pattern as `run_lbfgs.py`).
+
+## Notes
+
+- [AML_WhiteBox_Konzeptuebersicht.pdf](AML_WhiteBox_Konzeptuebersicht.pdf)

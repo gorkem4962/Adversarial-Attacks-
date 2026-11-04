@@ -1,0 +1,249 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[margin=1.35cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\definecolor{tu}{HTML}{1A4E8A}
+\definecolor{boxbg}{HTML}{F4F7FB}
+\definecolor{evcol}{HTML}{0B6E4F}
+\definecolor{poicol}{HTML}{8B4513}
+
+\tcbset{
+  tip/.style={colback=boxbg, colframe=tu, boxrule=0.55pt, arc=2pt,
+              left=3pt, right=3pt, top=2.5pt, bottom=2.5pt, fonttitle=\bfseries\small},
+  chain/.style={colback=white, colframe=tu, boxrule=0.7pt, arc=2pt,
+                left=4pt, right=4pt, top=3pt, bottom=3pt, fonttitle=\bfseries\small}
+}
+
+\titleformat{\section}{\normalsize\bfseries\color{tu}}{\thesection}{0.4em}{}
+\titleformat{\subsection}{\small\bfseries}{\thesubsection}{0.35em}{}
+\titlespacing*{\section}{0pt}{0.5em}{0.2em}
+\titlespacing*{\subsection}{0pt}{0.32em}{0.1em}
+\setlist[itemize]{leftmargin=1.0em, itemsep=0.06em, topsep=0.08em}
+\pagestyle{plain}
+\setlength{\parskip}{0.15em}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.12}
+
+\title{\vspace{-1.25em}\textbf{AML Cheat Sheet --- Wild Patterns}\\[0.1em]
+\large Definitionen nach Paper-Sektionen \& Verbindungen}
+\author{\small Biggio \& Roli (2018). Nur Paper-Inhalt. Fette Begriffe $=$ zentrale Definitionen.}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.65em}
+
+\begin{tcolorbox}[chain, title=Die Verbindung in einem Satz]
+§3 definiert den Angreifer (Goal $\cdot$ Knowledge $\cdot$ Capability).
+Formel (1) verbindet die drei Achsen.
+§4 f\"ullt (1) als \textbf{Evasion} (Test) oder \textbf{Poisoning} (Training) aus --- jeweils generic/specific.
+\end{tcolorbox}
+
+\vspace{0.15em}
+\begin{center}
+\begin{tikzpicture}[
+  font=\scriptsize,
+  n/.style={draw=tu, rounded corners=2pt, align=center, inner sep=3pt, fill=boxbg},
+  a/.style={-{Latex}, thick, tu}
+]
+\node[n] (s3) {§3 Threat Model\\ Goal / Knowledge / Capability};
+\node[n, right=0.5cm of s3] (f) {§3.4 Formel (1)\\ $\max A$ unter $\Phi$, mit $\theta$};
+\node[n, right=0.5cm of f, text=evcol, draw=evcol] (e) {§4.1 Evasion};
+\node[n, below=0.45cm of e, text=poicol, draw=poicol] (p) {§4.2 Poisoning};
+\draw[a] (s3) -- (f);
+\draw[a] (f) -- (e);
+\draw[a] (f) |- (p);
+\end{tikzpicture}
+\end{center}
+
+%---------------------------------------------------------------------
+\section{\S3 Know Your Adversary --- das Ger\"ust}
+%---------------------------------------------------------------------
+Jedes Angriffsszenario wird durch \textbf{drei Dinge} festgelegt. Die Angriffe in §4 sind nur Ausformulierungen davon.
+
+\subsection{3.1 Attacker's Goal --- Was will er?}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\small}l >{\small}X@{}}
+\toprule
+Security Violation &
+  \emph{Integrity:} Detection umgehen, Normalbetrieb bleibt.\\
+  & \emph{Availability:} System f\"ur Nutzer st\"oren / DoS.\\
+  & \emph{Privacy:} Infos \"uber System/Nutzer/Daten (Reverse Engineering).\\
+\midrule
+Attack Specificity &
+  \emph{targeted:} bestimmte Samples/Nutzer.\quad
+  \emph{indiscriminate:} beliebige/alle Samples.\\
+\midrule
+Error Specificity &
+  \emph{specific:} feste falsche Zielklasse.\quad
+  \emph{generic:} irgendeine falsche Klasse reicht.\\
+\bottomrule
+\end{tabularx}
+\vspace{0.1em}
+{\small\textbf{Verbindung:} Goal sagt nur das Ziel --- noch nicht \emph{wie} oder \emph{mit welchem Wissen}.}
+
+\subsection{3.2 Attacker's Knowledge --- Was wei\ss{} er?}
+Wissen: $\theta=(D,\mathcal{X},f,w)$ (Trainingsdaten, Features, Algorithmus, Parameter).
+
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\small}l >{\small}X@{}}
+\toprule
+Perfect-Knowledge (PK) White-Box &
+  $\theta_{\mathrm{PK}}=(D,\mathcal{X},f,w)$ --- alles bekannt; Worst-Case-Evaluation.\\
+\midrule
+Limited-Knowledge (LK) Gray-Box &
+  Teilwissen. Typisch: $\mathcal{X}$ und Art von $f$ bekannt, nicht $D$, nicht $w$.\\
+\quad LK-SD & Surrogate-Daten: $\theta=(\hat D,\mathcal{X},f,\hat w)$.\\
+\quad LK-SL & Surrogate-Learner: $\theta=(\hat D,\mathcal{X},\hat f,\hat w)$.\\
+\midrule
+Zero-Knowledge (ZK) Black-Box &
+  $\theta_{\mathrm{ZK}}=(\hat D,\hat{\mathcal{X}},\hat f,\hat w)$; praktisch Queries (Labels/Scores).\\
+  & Paper: Feature-Wissen kann partiell sein, aber nie v\"ollig null
+  (sonst keine sinnvollen Transformationen). Bilder: Features $=$ Pixel.\\
+\bottomrule
+\end{tabularx}
+\vspace{0.1em}
+{\small\textbf{Verbindung:} Knowledge \"andert nicht Evasion$\leftrightarrow$Poisoning, sondern
+\emph{gegen welches Modell} optimiert wird ($f$ oder Surrogat $\hat f$).}
+
+\subsection{3.3 Attacker's Capability --- Was darf er \"andern?}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\small}l >{\small}X@{}}
+\toprule
+Attack Influence &
+  \emph{exploratory} $=$ nur Testdaten $\Rightarrow$ \textbf{Evasion}.\\
+  & \emph{causative} $=$ Training manipulieren $\Rightarrow$ \textbf{Poisoning}.\\
+\midrule
+Data Manipulation Constraints &
+  Angriffsdaten $D_c$ nur in $\Phi(D_c)$ \"anderbar
+  (z.\,B.\ Malware bleibt funktional; Distanzbounds; Features nur erh\"ohen).\\
+\bottomrule
+\end{tabularx}
+\vspace{0.1em}
+{\small\textbf{Verbindung:} Hier entsteht die Hauptgabel Evasion vs.\ Poisoning. $\Phi$ begrenzt jede Optimierung.}
+
+\subsection{3.4 Attack Strategy --- die gemeinsame Formel}
+\[
+D_c^\star \in \arg\max_{D_c'\in\Phi(D_c)} A(D_c',\theta)
+\tag{1}
+\]
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\small}c >{\small}X >{\small}X@{}}
+\toprule
+Symbol & Bedeutung & kommt aus \\
+\midrule
+$A$ & Angriffserfolg & Goal \\
+$\theta$ & Wissen / (Surrogat-)Modell & Knowledge \\
+$\Phi$ & erlaubte \"Anderungen & Capability / Constraints \\
+\bottomrule
+\end{tabularx}
+\vspace{0.1em}
+{\small\textbf{Verbindung:} Goal + Knowledge + Capability stecken in (1). §4 f\"ullt $A$ und $\Phi$ konkret aus.}
+
+\subsection{3.5 Security Evaluation Curves}
+Kein neuer Angriffstyp: Performance bei steigender \textbf{Attack Strength}
+(gr\"o\ss{}eres $\Phi$: mehr Perturbation / mehr Poison-Punkte).
+
+\subsection{3.6 Summary / Fig.\ 4 --- Namen zuordnen}
+Kreuze Capability (Zeile) $\times$ Goal (Spalte):
+
+\begin{tabularx}{\textwidth}{@{}>{\small\bfseries}l >{\small}X >{\small}X >{\small}X@{}}
+\toprule
+ & Integrity & Availability & Privacy \\
+\midrule
+Test data & Evasion (adversarial examples) & --- &
+  Model extraction/stealing; model inversion \\
+Training data & Poisoning f\"ur Intrusions\\(Backdoors / Trojans) &
+  Poisoning (Fehler max.) & --- \\
+\bottomrule
+\end{tabularx}
+\vspace{0.1em}
+{\small Backdoor $=$ \textbf{Poisoning + Integrity}, kein dritter Grundtyp neben Evasion/Poisoning.}
+
+%---------------------------------------------------------------------
+\section{\S4 Simulating Attacks --- Formel (1) ausf\"ullen}
+%---------------------------------------------------------------------
+
+\subsection{4.1 Evasion attacks (Test-Zeit)}
+\textbf{Definition:} Inputs manipulieren, um einen \emph{bereits trainierten} Klassifikator
+\emph{zur Test-Zeit} zu t\"auschen.\\
+\textbf{Connection zu §3:} exploratory Capability; $A$ oft auf einem $x'$;
+wahre Klasse $k$ nur als Referenz in $A$ (kein mitgeschicktes Trainingslabel).\\
+Notation: $f_i(x)=$ Confidence Klasse $i$.
+
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\small}l >{\small}X@{}}
+\toprule
+Error-generic Evasion &
+  $\displaystyle\max_{x'} \Omega(x')=\max_{l\neq k}f_l(x')-f_k(x')$
+  s.t.\ $d(x,x')\le d_{\max}$,\ $x_{\mathrm{lb}}\preceq x'\preceq x_{\mathrm{ub}}$\quad (2)--(3)\\
+  & Idee: n\"achste falsche Klasse hoch, richtige runter. Constraints $=$ $\Phi$.\\
+\midrule
+Error-specific Evasion &
+  wie (2)--(3), aber $A=-\Omega$ und $f_k=$ Confidence der \textbf{Zielklasse}.\\
+\bottomrule
+\end{tabularx}
+
+\subsection{4.2 Poisoning Attacks (Training)}
+\textbf{Definition:} Giftpunkte in \emph{Trainingsdaten} $\Rightarrow$ manipuliertes $w^\star$;
+mehr Fehler zur \emph{sp\"ateren} Test-Zeit.\\
+\textbf{Connection zu §3:} causative Capability; Bilevel: innen Lernen, au\ss{}en $A$.
+
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\small}l >{\small}X@{}}
+\toprule
+Error-generic Poisoning &
+  $\displaystyle\max_{D_c'\in\Phi} A=L(D_{\mathrm{val}},w^\star)$
+  s.t.\ $w^\star\in\arg\min_{w'} L(D_{\mathrm{tr}}\cup D_c',w')$\quad (4)--(5)\\
+  & Viele Fehler, Klasse egal (DoS/Availability).\\
+\midrule
+Error-specific Poisoning &
+  weiter (4)--(5), aber $A=-L(D_{\mathrm{val}}',w^\star)$ mit Angreifer-Labels.\\
+\midrule
+Backdoor / Trojan &
+  Poisoning Integrity: gezielte sp\"atere Fehlklassifikation (Trigger/Region).\\
+\bottomrule
+\end{tabularx}
+
+%---------------------------------------------------------------------
+\section{Gegen\"uberstellung \& Entscheidungsbaum}
+%---------------------------------------------------------------------
+\begin{tabularx}{\textwidth}{@{}>{\small\bfseries}l >{\small}X >{\small}X@{}}
+\toprule
+ & Evasion & Poisoning \\
+\midrule
+Capability & exploratory / Test & causative / Training \\
+Variable & meist $x'$ & Menge $D_c'$ \\
+$A$ generic & $\max_{l\neq k}f_l-f_k$ & $L(D_{\mathrm{val}},w^\star)$ \\
+$A$ specific & $-\Omega$ / Zielklasse & $-L(D_{\mathrm{val}}',w^\star)$ \\
+Knowledge & PK/LK/ZK ($f$ oder $\hat f$) & ebenso \\
+\bottomrule
+\end{tabularx}
+
+\begin{tcolorbox}[tip, title=4 Fragen $\Rightarrow$ Angriff einordnen]
+\textbf{1.} Training? Ja $\to$ Poisoning. Nein $\to$ Evasion.\\
+\textbf{2.} Beliebige Fehler oder feste Klasse? $\to$ error-generic / specific.\\
+\textbf{3.} Wissen \"uber $D,\mathcal{X},f,w$? $\to$ PK / LK / ZK.\\
+\textbf{4.} Erlaubte \"Anderungen? $\to$ $\Phi(D_c)$.
+\end{tcolorbox}
+
+\begin{tcolorbox}[tip, title=Begriffspaare --- nicht vermischen]
+Evasion $\leftrightarrow$ Poisoning $=$ \emph{wann}.\quad
+generic $\leftrightarrow$ specific $=$ \emph{welche Fehlklassifikation}.\quad
+targeted $\leftrightarrow$ indiscriminate $=$ \emph{welche Samples}.\quad
+Integrity $\leftrightarrow$ Availability $\leftrightarrow$ Privacy $=$ \emph{Security-Ziel}.\quad
+PK/LK/ZK $=$ \emph{Wissen} (orthogonal).
+\end{tcolorbox}
+
+\vspace{0.1em}
+{\footnotesize Quelle: B.~Biggio, F.~Roli. \emph{Wild Patterns}. Pattern Recognition 84:317--331, 2018
+(Abschnitte 3--4; Formeln (1)--(5); Fig.\ 1, 4, 5).}
+
+\end{document}
